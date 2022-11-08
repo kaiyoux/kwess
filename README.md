@@ -58,7 +58,7 @@ print(dto[1])
 # Questrade does not seem to keep old account executions - only the most recent
 excs = qs.get_account_executions(startdatetime=dt(year=2022, month=1, day=28), enddatetime=dt(year=2022, month=9, day=30), verbose="o")
 for exc in excs:
-    pprint(exc, "\n")
+    print(exc, "\n")
 
 accs = qs.get_account_balances()
 print(accs)
