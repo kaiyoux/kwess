@@ -207,13 +207,13 @@ class Trader:
                 idt = startdatetime + thirdy_days
                 js = f(self, startdatetime=startdatetime, enddatetime=idt, *args, **kwargs)
                 yield js
-                startdatetime = idt
+                startdatetime = idt + td(days=1)
                 idt = startdatetime + thirdy_days
                 dlt = enddatetime - startdatetime
                 while dlt.days > 29:
                     js = f(self, startdatetime=startdatetime, enddatetime=idt, *args, **kwargs)
                     yield js
-                    startdatetime = idt
+                    startdatetime = idt + td(days=1)
                     idt = startdatetime + thirdy_days
                     dlt = enddatetime - startdatetime
                 if dlt.days >= 1:
@@ -230,7 +230,7 @@ class Trader:
                 between the range specified by startdatetime and enddatetime. Both objects are
                 datetime objects.
             Parameters:
-                - startdatetime datetime object sepecifying the start of a range.
+                - startdatetime datetime object specifying the start of a range.
                 - enddatetime optional datetime object specifying the end of a range. Defaults to
                 now (datetime.datetime.now()) if not specified.
                 - accounttype type of Questrade account. Defaults to "tfsa".

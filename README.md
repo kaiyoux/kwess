@@ -164,7 +164,7 @@ get_account_activities(self, startdatetime, enddatetime=None, accounttype='TFSA'
       between the range specified by startdatetime and enddatetime. Both objects are
       datetime objects.
   Parameters:
-      - startdatetime datetime object sepecifying the start of a range.
+      - startdatetime datetime object specifying the start of a range.
       - enddatetime optional datetime object specifying the end of a range. Defaults to
       now (datetime.datetime.now()) if not specified.
       - accounttype type of Questrade account. Defaults to "tfsa".
