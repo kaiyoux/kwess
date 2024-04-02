@@ -35,7 +35,7 @@ class Trader:
             - server_type could be 2 possible values: "live" or "test". "live" will allow you to
             interact with your real Questrade account. "test" is for interacting with your test
             account.
-            - timeout number of seconds to wait for the API server to respond before giving up.
+            - timeout number of seconds to wait for the server to respond before giving up.
             Defaults to 15 seconds. Set timeout to None if you wish to wait forever for a response.
             - verbose level of verbosity represented by the number of characters in a string.
             Defaults to empty string. Maximum verbosity is 1 or "v".
@@ -88,7 +88,7 @@ class Trader:
     def get_new_refresh_token(self, token, verbose=''):
         """
         Description:
-            Obtains a new refresh token (and new access token) from the API server.
+            Obtains a new refresh token (and new access token) from the Authorization server.
             You generally would not need to call this method, as it is potentially called by Trader
             during initialization.
             Trader will only call this method if the access token has expired.
@@ -231,8 +231,8 @@ class Trader:
                 datetime objects.
             Parameters:
                 - startdatetime datetime object specifying the start of a range.
-                - enddatetime optional datetime object specifying the end of a range. Defaults to
-                now (datetime.datetime.now()) if not specified.
+                - enddatetime optional datetime object specifying the end of a range.
+                Defaults to now (datetime.datetime.now()) if not specified.
                 - accounttype type of Questrade account. Defaults to "tfsa".
                 - verbose level of verbosity represented by the number of characters in a string.
                 Defaults to empty string. Maximum verbosity is 3 or "vvv".
@@ -334,7 +334,7 @@ class Trader:
         Description:
             Higher level helper method used to build a Questrade datetime string.
         Parameters:
-            - adatetime a datetime object.
+            - adatetime a datetime object. Defaults to now.
             - gmt optional boolean indicating if datetime is Greenwich Mean Time.
             Default value is False.
         Returns:
@@ -454,7 +454,7 @@ class Trader:
     
 
     @get_all
-    def get_account_executions(self, accounttype="TFSA", startdatetime=None, enddatetime=None, verbose=''):
+    def get_account_executions(self, startdatetime, enddatetime=None, accounttype="TFSA", verbose=''):
         """
         Description:
             Generator that provides account executions from the account related to account type
@@ -588,7 +588,7 @@ class Trader:
 
 
     @get_all
-    def get_market_candles(self, sid, interval, startdatetime=None, enddatetime=None, verbose=''):
+    def get_market_candles(self, sid, interval, startdatetime, enddatetime=None, verbose=''):
         """
         Description:
             Provides a list of json formatted market candles.
