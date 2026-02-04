@@ -1,9 +1,13 @@
 # Introduction
 
 Yet another Questrade API wrapper.
-
 For details about the input parameters and output results, please visit
 the [Questrade API documentation](https://www.questrade.com/api/home).
+
+Also includes an executable module that determines the ACB 
+(Average/Adjusted Cost Base) of buy and sell activities from 
+saved logs, and prints the profit/loss amounts of sell transactions 
+up till, but not including, a given cut-off year.
 
 ### To install:
 **python -m pip install kwess**
@@ -77,7 +81,7 @@ print(accs)
 sim = qs.search_symbols("vfv", verbose="88")
 print(sim)
 
-sim = qs.get_symbols_by_names("xdiv.to,xuu.to,cve.to", verbose="**")
+sim = qs.get_symbols_by_names("xdiv.to,xuu.to,qqc.to", verbose="**")
 print(sim)
 
 sim = qs.get_symbols_by_names("hom.un.to")
@@ -106,6 +110,50 @@ pprint(ops)
 
 ```
 
+# Sample Script To Pull Your Questrade Logs
+
+```
+from kwess import Trader
+from datetime import datetime as dt
+import json
+
+
+def get_logs(qt, startdate, enddate=None, accounttype="TFSA"):
+    """
+    Parameters:
+        - qt Trader object.
+        - startdate datetime object for beginning period.
+        - enddate datetime object for end period. Defaults to None, which will be treated as now.
+        - accounttype type of account for which activities will be obtained. Defaults to TFSA.
+    """
+    if enddate == None:
+        enddate = dt.now()
+    for filename in ["activities", "orders", "executions"]:
+        filename = accounttype + "_account_" + filename + "_from_" + str(startdate.date()) + "_to_" + str(enddate.date()) + ".json"
+        with open(filename, mode="at", encoding="utf-8") as jfp:
+            if "activities" in filename:
+                accs = qt.get_account_activities(accounttype=accounttype, startdatetime=startdate, enddatetime=enddate, verbose="nnn")
+            elif "orders" in filename:
+                accs = qt.get_account_orders(accounttype=accounttype, startdatetime=startdate, enddatetime=enddate, verbose="nnn")
+            else:
+                accs = qt.get_account_executions(accounttype=accounttype, startdatetime=startdate, enddatetime=enddate, verbose='nnn')
+            
+            for acc in accs:
+                json.dump(acc, jfp, ensure_ascii=False, indent=2)
+
+
+ 
+
+if __name__ == "__main__":
+    #account_types = ["TFSA", "Cash", "Margin"]
+    #account_types = ["Cash"]
+    account_types = ["Margin"]
+    qt = Trader(verbose='n')
+
+    for acc_type in account_types:
+        get_logs(qt=qt, accounttype=acc_type, startdate=dt(year=2025, month=9, day=17))
+
+```
 
 # API Class And Methods
 
@@ -477,6 +525,33 @@ Returns:
     Example: "2011-02-01T00:00:00-05:00".
     If gmt is set to False, time will be in local time.
     If gmt is True, the returned time will be considered as gmt time.
+```
+
+# Example of Executable Module
+
+Open a command line in the directory containing your logs, and run the module:
+```
+    kwess_acb
+(or)
+    python -m kwess.kwess_acb
+
+```
+
+### To run the scrpit:
+**kwess_acb [-h] [-s SYMBOL [SYMBOL ...]] [-y CUT_OFF_YEAR] [-p PATH]**
+```
+Computes the ACB (Average/Adjusted Cost Base) from kwess activity logs, and 
+prints profit/loss of Sell transactions.
+
+options:
+  -h, --help            show this help message and exit.
+  -s SYMBOL [SYMBOL ...], --symbol SYMBOL [SYMBOL ...]
+                        ticker symbol(s).
+  -y CUT_OFF_YEAR, --cut_off_year CUT_OFF_YEAR
+                        cut off year. defaults to the current year.
+  -p PATH, --path PATH  path of the directory containing the logs. 
+			defaults to the current directory.
+
 ```
 
 

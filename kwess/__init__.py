@@ -1,7 +1,7 @@
 
 import requests
 import sys
-from pprint import pprint
+from pprint import pprint as pp
 from datetime import datetime as dt, timezone as tz, timedelta as td
 import time
 import json
@@ -179,7 +179,7 @@ class Trader:
             print(f"Accounts for user id {self.userid}:")
         for account in self.accounts:
             if verbose:
-                pprint(account)
+                pp(account)
             yield account
 
 
@@ -262,7 +262,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account activities.", f"{self.server_type} server returned {resp.status_code} on get_account_activities().", ex)
 
         if verbosity > 1:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
     
 
@@ -413,7 +413,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account orders.", f"{self.server_type} server returned {resp.status_code} on get_account_orders().", ex)
 
         if verbosity > 1:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -449,7 +449,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account orders by ids.", f"{self.server_type} server returned {resp.status_code} on get_account_orders_by_ids().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
     
 
@@ -494,7 +494,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account executions.", f"{self.server_type} server returned {resp.status_code} on get_account_executions().", ex)
 
         if verbosity > 1:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -525,7 +525,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account balances.", f"{self.server_type} server returned {resp.status_code} on get_account_balances().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -556,7 +556,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account positions.", f"{self.server_type} server returned {resp.status_code} on get_account_positions().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -583,7 +583,7 @@ class Trader:
 
         rd = resp.json()
         if verbosity > 0:
-            pprint(dt.strptime(rd["time"][:-13], '%Y-%m-%dT%X'))
+            pp(dt.strptime(rd["time"][:-13], '%Y-%m-%dT%X'))
         return dt.strptime(rd["time"][:-13], '%Y-%m-%dT%X'), rd
 
 
@@ -623,7 +623,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market candles.", f"{self.server_type} server returned {resp.status_code} on get_market_candles().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
             
 
@@ -652,7 +652,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quote strategies.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes_strategies().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -684,7 +684,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quote options.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes_options().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
             
             
@@ -729,7 +729,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quotes.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
     
 
@@ -756,7 +756,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for markets.", f"{self.server_type} server returned {resp.status_code} on get_markets().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
     
 
@@ -784,7 +784,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbol options.", f"{self.server_type} server returned {resp.status_code} on get_symbol_options().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
             
 
@@ -814,7 +814,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to search server for symbols.", f"{self.server_type} server returned {resp.status_code} on search_symbols().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -855,7 +855,7 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbols by ids.", f"{self.server_type} server returned {resp.status_code} on get_symbols_by_ids().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 
 
@@ -889,6 +889,6 @@ class Trader:
             self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbols by names.", f"{self.server_type} server returned {resp.status_code} on get_symbols_by_names().", ex)
 
         if verbosity > 0:
-            pprint(resp.json())
+            pp(resp.json())
         return resp.json()
 

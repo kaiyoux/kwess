@@ -1,3 +1,46 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "kwess"
+version = "0.1.0"
+description = "Questrade API wrapper."
+readme = "README.md"
+requires-python = ">=3.6"
+keywords = ["questrade", "api", "REST", "wrapper", "ACB", "profit", "loss", "average cost base", "adjusted cost base", "logs", "kwess"]
+license = "GPL-3.0-or-later"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+]
+
+# Authors and Maintainers are now arrays of tables
+authors = [
+    {name = "Issa Lompo", email = "kaiyoux@gmail.com"}
+]
+maintainers = [
+    {name = "Issa Lompo", email = "kaiyoux@gmail.com"}
+]
+
+dependencies = ["requests>=2.28.1"]
+
+[project.urls]
+Homepage = "https://github.com/pypa/kwess"
+"Bug Tracker" = "https://github.com"
+
+[project.scripts]
+kwess_acb = "kwess.kwess_acb:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = true
+
+[tool.setuptools.packages.find]
+where = ["."]  # Standard if your code is in the root; use ["src"] if using src layout
+
+[tool.setuptools.package-data]
+sample_configs = ["*.txt"]
+"*" = ["*.txt", "*.md"]
