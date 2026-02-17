@@ -1,6 +1,6 @@
 # Introduction
 
-Yet another Questrade API wrapper.
+Pretty versatile Questrade API wrapper.
 For details about the input parameters and output results, please visit
 the [Questrade API documentation](https://www.questrade.com/api/home).
 
@@ -23,6 +23,11 @@ from pprint import pprint
 # It is assumed that your manually generated token has been saved in local file 
 # my_token.txt
 qs = kwess.Trader(rt_file="my_token.txt", verbose="v")
+
+# Alternatively, if you want to provide the token directly, do this instead
+#qs = kwss.Trader(store_tokens=False, manual_token='my-token-here')
+# Retrieve the new refresh token:
+#print(f"The new refresh token is now: {qs.get_refresh_token()}")
 
 accs = qs.get_accounts()
 for acc in accs:
@@ -129,7 +134,7 @@ def get_logs(qt, startdate, enddate=None, accounttype="TFSA"):
     if enddate == None:
         enddate = dt.now()
     for filename in ["activities", "orders", "executions"]:
-        filename = accounttype + "_account_" + filename + "_from_" + str(startdate.date()) + "_to_" + str(enddate.date()) + ".json"
+        filename = ''.join([accounttype, "_account_", filename, "_from_", str(startdate.date()), "_to_", str(enddate.date()), ".json"])
         with open(filename, mode="at", encoding="utf-8") as jfp:
             if "activities" in filename:
                 accs = qt.get_account_activities(accounttype=accounttype, startdatetime=startdate, enddatetime=enddate, verbose="nnn")
@@ -163,12 +168,14 @@ __init__(self, rt_file='refreshToken', server_type='live', timeout=15, verbose='
 Description:
     Initializer of a Trader object. Before creating a Trader object (for the very 
     first time or when the present token has expired), you must generate a new 
-    token for manual authorization from your Questrade APP HUB, and save that 
-    manually generated token in a local file. That local file's filename 
+    token for manual authorization from your Questrade APP HUB, and either:
+    - save that manually generated token in a local file. That local file's filename
     (or pathname) is passed to rt_file.
-    When Trader creates a Trader object, it exchanges that manually obtained token 
-    for an access token and a refresh token. The access token expires in 30 minutes 
-    and the refresh token expires in three days.
+    or
+    - pass it to this initializer via manual_token. 
+    When Trader creates a Trader object, it exchanges that manually obtained token for an
+    access token and a refresh token. The access token expires in 30 minutes and
+    the refresh token expires in three days.
     As long as the refresh token has not expired, creating Trader objects or 
     calling method get_new_refresh_token will obtain a new access token (if the 
     current access token has expired) and obtain a new replacement refresh token 
@@ -178,8 +185,8 @@ Description:
     new refresh token pair indefinitely (by creating Trader objects or calling 
     method get_new_refresh_token).
     If the refresh token ever expires, you must log back into your Questrade account,
-    generate a new token for manual authorization under APP HUB, and save that token
-    in the local file referred to by rt_file.
+    generate a new token for manual authorization under APP HUB, and either save that token
+    in the local file referred to by rt_file, or pass it to this initializer via manual_token.
 Parameters:
     - rt_file name of your local file containing your refresh token.
     Defaults to "refreshToken".
@@ -192,8 +199,18 @@ Parameters:
     for a response.
     - verbose level of verbosity represented by the number of characters in a string.
     Defaults to empty string. Maximum verbosity is 1 or "v".
+    - store_tokens determines whether tokens are stored into local files or not.
+    Defaults to True.
+    - manual_token pass the manually generated token, if it won't be taken from a local file.
+    In order to use manual_token, store_tokens has to be set to False.
+    Defaults to empty string.
 Returns:
     Trader object.
+
+
+get_refresh_token(self):
+Description:
+    Returns the refresh token.
 
 
 build_datetime_string(self, adatetime=None, gmt=False)
@@ -225,7 +242,7 @@ Description:
 Parameters:
     - startdatetime datetime object specifying the start of a range.
     - enddatetime optional datetime object specifying the end of a range. 
-    Defaults to now (datetime.datetime.now()) if not specified.
+    Defaults to now if not specified.
     - accounttype type of Questrade account. 
     Defaults to "tfsa".
     - verbose level of verbosity represented by the number of characters in a string.
@@ -258,7 +275,7 @@ Description:
 Parameters:
     - startdatetime datetime object representing the beginning of a range.
     - enddatetime datetime object representing the end of a range.
-    Defaults to now (datetime.datetime.now()) if not specified.
+    Defaults to now if not specified.
     - accounttype type of Questrade account. 
     Defaults to "tfsa".
     - verbose level of verbosity represented by the number of characters in 
@@ -278,7 +295,7 @@ Description:
 Parameters:
     - startdatetime datetime object representing the beginning of a range.
     - enddatetime optional datetime object representing the end of a range.
-    Defaults to now (datetime.datetime.now()) if not specified.
+    Defaults to now if not specified.
     - accounttype type of Questrade account. 
     Defaults to "tfsa".
     - statefilter can be used to specify the state of orders.
@@ -546,7 +563,7 @@ prints profit/loss of Sell transactions.
 options:
   -h, --help            show this help message and exit.
   -s SYMBOL [SYMBOL ...], --symbol SYMBOL [SYMBOL ...]
-                        ticker symbol(s).
+                        ticker symbol(s). defaults to all.
   -y CUT_OFF_YEAR, --cut_off_year CUT_OFF_YEAR
                         cut off year. defaults to the current year.
   -p PATH, --path PATH  path of the directory containing the logs. 

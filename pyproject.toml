@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kwess"
-version = "0.1.0"
+version = "0.2.0"
 description = "Questrade API wrapper."
 readme = "README.md"
 requires-python = ">=3.6"
-keywords = ["questrade", "api", "REST", "wrapper", "ACB", "profit", "loss", "average cost base", "adjusted cost base", "logs", "kwess"]
+keywords = ["questrade", "api", "REST", "wrapper", "ACB", "profit", "loss", "average cost base", "adjusted cost base", "logs"]
 license = "GPL-3.0-or-later"
 classifiers = [
     "Programming Language :: Python :: 3",

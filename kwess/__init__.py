@@ -9,13 +9,16 @@ import json
 
 
 class Trader:
-    def __init__(self, rt_file="refreshToken", server_type="live", timeout=15, verbose=''):
+    def __init__(self, rt_file="refreshToken", store_tokens=True, manual_token='', server_type="live", timeout=15, verbose=''):
         """
         Description:
             Initializer of a Trader object. Before creating a Trader object for the very first time,
-            you must generate a new token for manual authorization from your Questrade APP HUB,
-            and save that manually generated token in a local file. That local file's filename
+            you must generate a new token for manual authorization from your
+            Questrade APP HUB, and either:
+            - save that manually generated token in a local file. That local file's filename
             (or pathname) is passed to rt_file.
+            or
+            - pass it to this initializer via manual_token.
             When Trader creates a Trader object, it exchanges that manually obtained token for an
             access token and a refresh token. The access token expires in 30 minutes and
             the refresh token expires in three days.
@@ -27,11 +30,16 @@ class Trader:
             token pair indefinitely (by creating Trader objects or calling method
             get_new_refresh_token).
             If the refresh token ever expires, you must log back into your Questrade account,
-            generate a new token for manual authorization under APP HUB, and save that token
-            in the local file referred to by rt_file.
+            generate a new token for manual authorization under APP HUB, and either save that token
+            in the local file referred to by rt_file, or pass it to this initializer via manual_token.
         Parameters:
             - rt_file name of your local file containing your refresh token.
             Defaults to "refreshToken".
+            - store_tokens determines whether tokens are stored into local files or not.
+            Defaults to True.
+            - manual_token pass the manually generated token, if it won't be taken from a local file.
+            In order to use manual_token, store_tokens has to be set to False.
+            Defaults to empty string.
             - server_type could be 2 possible values: "live" or "test". "live" will allow you to
             interact with your real Questrade account. "test" is for interacting with your test
             account.
@@ -46,9 +54,51 @@ class Trader:
         "live":	"https://login.questrade.com/oauth2/token",
         "test":	"https://practicelogin.questrade.com/oauth2/token"
         }
-        self.rt_file = rt_file
         self.timeout = timeout
         self.server_type = server_type
+        self.api_server = None
+        self.access_token = ''
+        self.refresh_token = ''
+        
+        if not store_tokens:
+            self.web_app_mode = True
+            self._web_based(manual_token=manual_token, verbose=verbose)
+        else:
+            self.web_app_mode = False
+            self._file_based(rt_file=rt_file, verbose=verbose)
+            
+
+    def _web_based(self, manual_token=None, verbose=''):
+        """
+        Description:
+            Performs non file-based initialization proccedures.
+        Parameters:
+            - manual_token pass the manually generated token, if it won't be taken from a local file.
+            Defaults to empty string.
+            - verbose level of verbosity represented by the number of characters in a string.
+            Defaults to empty string. Maximum verbosity is 1 or "v".
+        """
+        if not manual_token:
+            raise Exception("Please log into your Questrade account (APP HUB), generate a new token for manual authorization, and try again.")
+        else:
+            try: # see if manual_token is still a valid refresh token
+                self.get_new_refresh_token(token=manual_token.strip(), verbose=verbose)
+                self._get_accounts()
+            except Exception as ex:
+                raise Exception("Please log into your Questrade account (APP HUB), generate a new token for manual authorization, and try again.")
+
+
+    def _file_based(self, rt_file="refreshToken", verbose=''):        
+        """
+        Description:
+            Performs file-based initialization procedures.
+        Parameters:
+            - rt_file name of your local file containing your refresh token.
+            Defaults to "refreshToken".
+            - verbose level of verbosity represented by the number of characters in a string.
+            Defaults to empty string. Maximum verbosity is 1 or "v".
+        """
+        self.rt_file = rt_file
         try:
             with open("accessToken.json", mode="r", encoding="utf-8") as fp:
                 rd = json.load(fp)
@@ -116,12 +166,13 @@ class Trader:
         if verbose:
             print("Successfully exchanged refresh token for a new one, and a new {} minutes access token.".format(self.expires_in // 60))
 
-        try:
-            with open(self.rt_file, mode="wt", encoding="utf-8") as fp:
-                fp.write(self.refresh_token)
-        except Exception as ex:
-            print(f"Could not save new refresh token in file {self.rt_file}:")
-            print(ex)
+        if not self.web_app_mode:
+            try:
+                with open(self.rt_file, mode="wt", encoding="utf-8") as fp:
+                    fp.write(self.refresh_token)
+            except Exception as ex:
+                print(f"Could not save new refresh token in file {self.rt_file}:")
+                print(ex)
         try:
             with open("accessToken.json", mode="w", encoding='utf-8') as jfp:
                 now = dt.now()
@@ -131,19 +182,23 @@ class Trader:
         except Exception as ex:
             print("Could not save new access token in file accessToken.json:")
             print(ex)
-            raise Exception()
+            raise Exception("Problem with accessToken.json")
 
 
     def _report_and_exit(self, *args):
         """
         Description:
-            Prints messages passed as positional arguments, and exits.
+            If in file-based mode, prints messages passed as positional arguments, and exits.
+            If in non file-based mode (aka web_app_mode), raises an exception instead.
         Parameters:
             - args tuple of printable objects.
         """
-        for m in args:
-            print(m)
-        sys.exit(1)
+        if self.web_app_mode:
+            raise Exception("\n".join(list(args)))
+        else:
+            for m in args:
+                print(m)
+            sys.exit(1)
 
         
     def _get_accounts(self):
@@ -163,6 +218,14 @@ class Trader:
 
         self.userid = resp.json()["userId"]
         self.accounts = resp.json()["accounts"] # list of accounts
+
+
+    def get_refresh_token(self):
+        """
+        Description:
+            Returns the refresh token.
+        """
+        return self.refresh_token
 
 
     def get_accounts(self, verbose=''):
@@ -232,7 +295,7 @@ class Trader:
             Parameters:
                 - startdatetime datetime object specifying the start of a range.
                 - enddatetime optional datetime object specifying the end of a range.
-                Defaults to now (datetime.datetime.now()) if not specified.
+                Defaults to now if not specified.
                 - accounttype type of Questrade account. Defaults to "tfsa".
                 - verbose level of verbosity represented by the number of characters in a string.
                 Defaults to empty string. Maximum verbosity is 3 or "vvv".
@@ -374,7 +437,7 @@ class Trader:
         Parameters:
             - startdatetime datetime object representing the beginning of a range.
             - enddatetime optional datetime object representing the end of a range.
-            Defaults to now (datetime.datetime.now()) if not specified.
+            Defaults to now if not specified.
             - accounttype type of Questrade account. Defaults to "tfsa".
             - statefilter can be used to specify the state of orders.
             It has 3 possible values: Opened, Closed, or All. Defaults to "All".
@@ -464,7 +527,7 @@ class Trader:
         Parameters:
             - startdatetime datetime object representing the beginning of a range.
             - enddatetime datetime object representing the end of a range.
-            Defaults to now (datetime.datetime.now()) if not specified.
+            Defaults to now if not specified.
             - accounttype type of Questrade account. Defaults to "tfsa".
             - verbose level of verbosity represented by the number of characters in a string.
             Defaults to empty string. Maximum verbosity is 3 or "vvv".
