@@ -8,8 +8,8 @@ Also includes an executable module that determines the ACB
 (Average/Adjusted Cost Base) of buy and sell activities from 
 saved logs, and prints the profit/loss amounts of sell transactions 
 up till, but not including, a given cut-off year.
-As a conveninence, you may use the readily available web application 
-[kwessACB](https://soloist.ai/kaiyoux) for secure and confidential 
+As a conveninence, you may use the readily available Web application 
+[kwessACB](https://soloist.ai/kaiyoux#codeembed-1) for secure and confidential 
 on-the-fly determination of the ACB-based profit/loss values of your 
 Questrade investments.
 
@@ -29,7 +29,7 @@ from pprint import pprint
 qs = kwess.Trader(rt_file="my_token.txt", verbose="v")
 
 # Alternatively, if you want to provide the token directly, do this instead
-#qs = kwss.Trader(store_tokens=False, token='my-token-here')
+#qs = kwess.Trader(store_tokens=False, token='my-token-here')
 
 accs = qs.get_accounts()
 for acc in accs:
