@@ -8,6 +8,10 @@ Also includes an executable module that determines the ACB
 (Average/Adjusted Cost Base) of buy and sell activities from 
 saved logs, and prints the profit/loss amounts of sell transactions 
 up till, but not including, a given cut-off year.
+As a conveninence, you may use the readily available web application 
+[kwessACB](https://soloist.ai/kaiyoux) for secure and confidential 
+on-the-fly determination of the ACB-based profit/loss values of your 
+Questrade investments.
 
 ### To install:
 **python -m pip install kwess**
@@ -25,9 +29,7 @@ from pprint import pprint
 qs = kwess.Trader(rt_file="my_token.txt", verbose="v")
 
 # Alternatively, if you want to provide the token directly, do this instead
-#qs = kwss.Trader(store_tokens=False, manual_token='my-token-here')
-# Retrieve the new refresh token:
-#print(f"The new refresh token is now: {qs.get_refresh_token()}")
+#qs = kwss.Trader(store_tokens=False, token='my-token-here')
 
 accs = qs.get_accounts()
 for acc in accs:
@@ -164,53 +166,58 @@ if __name__ == "__main__":
 
 class Trader
 ```
-__init__(self, rt_file='refreshToken', server_type='live', timeout=15, verbose='')
+__init__(self, rt_file="refreshToken", store_tokens=True, token='', api_server='', server_type="live", timeout=15, verbose='')
 Description:
-    Initializer of a Trader object. Before creating a Trader object (for the very 
-    first time or when the present token has expired), you must generate a new 
-    token for manual authorization from your Questrade APP HUB, and either:
-    - save that manually generated token in a local file. That local file's filename
-    (or pathname) is passed to rt_file.
+    Initializer of a Trader object. Before creating a Trader object for the very first time,
+    you must obtain a token from your Questrade APP HUB by either:
+    - generating a new (refresh) token via manual authorization, and save that manually
+    generated token in a local file. That local file's filename (or pathname) is passed
+    to rt_file.
     or
-    - pass it to this initializer via manual_token. 
-    When Trader creates a Trader object, it exchanges that manually obtained token for an
-    access token and a refresh token. The access token expires in 30 minutes and
-    the refresh token expires in three days.
-    As long as the refresh token has not expired, creating Trader objects or 
-    calling method get_new_refresh_token will obtain a new access token (if the 
-    current access token has expired) and obtain a new replacement refresh token 
-    that will last for another 3 days.
-    Technically, as long as the current refresh token has not expired, it is 
-    possible to keep exchanging the current refresh token for a new access token and 
-    new refresh token pair indefinitely (by creating Trader objects or calling 
-    method get_new_refresh_token).
-    If the refresh token ever expires, you must log back into your Questrade account,
-    generate a new token for manual authorization under APP HUB, and either save that token
-    in the local file referred to by rt_file, or pass it to this initializer via manual_token.
+    - perform an Implicit Authorization (via a Mobile Apps or Web applications that run solely
+    on the user's device) and pass the returned access_token or refresh_token to this initializer
+    via token. 
+    When Trader creates a Trader object, it could either interact with the API server directly
+    if token is an access token, or else exchange token (a refresh token) for a new access token
+    and a new refresh token pair. The access token expires in 30 minutes, while the refresh token
+    expires in three days.
+    As long as the refresh token has not expired, creating Trader objects or calling method
+    get_new_refresh_token will obtain a new access token (if the current access token has
+    expired) and obtain a new replacement refresh token that will last for another 3 days.
+    Technically, as long as the current refresh token has not expired, it is possible
+    to keep exchanging the current refresh token for a new access token and new refresh
+    token pair indefinitely (by creating Trader objects or calling method get_new_refresh_token).
+    If the refresh token ever expires, you must repeat the token acquisition process.
 Parameters:
-    - rt_file name of your local file containing your refresh token.
-    Defaults to "refreshToken".
-    - server_type could be 2 possible values: "live" or "test". 
-    "live" will allow you to interact with your real Questrade account. 
-    "test" is for interacting with your test account.
-    - timeout number of seconds to wait for the server to respond before 
-    giving up.
-    Defaults to 15 seconds. Set timeout to None if you wish to wait forever 
-    for a response.
-    - verbose level of verbosity represented by the number of characters in a string.
-    Defaults to empty string. Maximum verbosity is 1 or "v".
+    - rt_file name of your local file containing your refresh token. In order to use rt_file,
+    store_tokens has to be set to True. Defaults to "refreshToken".
     - store_tokens determines whether tokens are stored into local files or not.
     Defaults to True.
-    - manual_token pass the manually generated token, if it won't be taken from a local file.
-    In order to use manual_token, store_tokens has to be set to False.
-    Defaults to empty string.
+    - token pass the token (access_token or refresh_token) obtained via Implicit Authorization,
+    if it won't be taken from a local file. In order to use token, store_tokens has to be set to
+    False. Defaults to empty string.
+    - api_server address of the server obtained via Implicit Authorization. It is required if
+    store_tokens is set to False. Defaults to empty string.
+    - server_type could be 2 possible values: "live" or "test". "live" will allow you to
+    interact with your real Questrade account. "test" is for interacting with your test
+    account. Defaults to "live".
+    - timeout number of seconds to wait for the server to respond before giving up.
+    Defaults to 15 seconds. Set timeout to None if you wish to wait forever for a response.
+    - verbose level of verbosity represented by the number of characters in a string.
+    Defaults to empty string. Maximum verbosity is 1 or "v". Not useful if store_tokens is False.
 Returns:
     Trader object.
 
 
+get_access_token(self):
+Description:
+    Returns the access token.
+
+
 get_refresh_token(self):
 Description:
-    Returns the refresh token.
+    Returns the refresh token. Note: An empty string will be returned if the Trader object
+    was initialized with an access token.
 
 
 build_datetime_string(self, adatetime=None, gmt=False)

@@ -9,44 +9,46 @@ import json
 
 
 class Trader:
-    def __init__(self, rt_file="refreshToken", store_tokens=True, manual_token='', server_type="live", timeout=15, verbose=''):
+    def __init__(self, rt_file="refreshToken", store_tokens=True, token='', api_server='', server_type="live", timeout=15, verbose=''):
         """
         Description:
             Initializer of a Trader object. Before creating a Trader object for the very first time,
-            you must generate a new token for manual authorization from your
-            Questrade APP HUB, and either:
-            - save that manually generated token in a local file. That local file's filename
-            (or pathname) is passed to rt_file.
+            you must obtain a token from your Questrade APP HUB by either:
+            - generating a new (refresh) token via manual authorization, and save that manually
+            generated token in a local file. That local file's filename (or pathname) is passed
+            to rt_file.
             or
-            - pass it to this initializer via manual_token.
-            When Trader creates a Trader object, it exchanges that manually obtained token for an
-            access token and a refresh token. The access token expires in 30 minutes and
-            the refresh token expires in three days.
+            - perform an Implicit Authorization (via a Mobile Apps or Web applications that run solely
+            on the user's device) and pass the returned access_token or refresh_token to this initializer
+            via token. 
+            When Trader creates a Trader object, it could either interact with the API server directly
+            if token is an access token, or else exchange token (a refresh token) for a new access token
+            and a new refresh token pair. The access token expires in 30 minutes, while the refresh token
+            expires in three days.
             As long as the refresh token has not expired, creating Trader objects or calling method
             get_new_refresh_token will obtain a new access token (if the current access token has
             expired) and obtain a new replacement refresh token that will last for another 3 days.
             Technically, as long as the current refresh token has not expired, it is possible
             to keep exchanging the current refresh token for a new access token and new refresh
-            token pair indefinitely (by creating Trader objects or calling method
-            get_new_refresh_token).
-            If the refresh token ever expires, you must log back into your Questrade account,
-            generate a new token for manual authorization under APP HUB, and either save that token
-            in the local file referred to by rt_file, or pass it to this initializer via manual_token.
+            token pair indefinitely (by creating Trader objects or calling method get_new_refresh_token).
+            If the refresh token ever expires, you must repeat the token acquisition process.
         Parameters:
-            - rt_file name of your local file containing your refresh token.
-            Defaults to "refreshToken".
+            - rt_file name of your local file containing your refresh token. In order to use rt_file,
+            store_tokens has to be set to True. Defaults to "refreshToken".
             - store_tokens determines whether tokens are stored into local files or not.
             Defaults to True.
-            - manual_token pass the manually generated token, if it won't be taken from a local file.
-            In order to use manual_token, store_tokens has to be set to False.
-            Defaults to empty string.
+            - token pass the token (access_token or refresh_token) obtained via Implicit Authorization,
+            if it won't be taken from a local file. In order to use token, store_tokens has to be set to
+            False. Defaults to empty string.
+            - api_server address of the server obtained via Implicit Authorization. It is required if
+            store_tokens is set to False. Defaults to empty string.
             - server_type could be 2 possible values: "live" or "test". "live" will allow you to
             interact with your real Questrade account. "test" is for interacting with your test
-            account.
+            account. Defaults to "live".
             - timeout number of seconds to wait for the server to respond before giving up.
             Defaults to 15 seconds. Set timeout to None if you wish to wait forever for a response.
             - verbose level of verbosity represented by the number of characters in a string.
-            Defaults to empty string. Maximum verbosity is 1 or "v".
+            Defaults to empty string. Maximum verbosity is 1 or "v". Not useful if store_tokens is False.
         Returns:
             Trader object.
         """
@@ -56,36 +58,42 @@ class Trader:
         }
         self.timeout = timeout
         self.server_type = server_type
-        self.api_server = None
+        self.api_server = api_server
         self.access_token = ''
         self.refresh_token = ''
         
         if not store_tokens:
             self.web_app_mode = True
-            self._web_based(manual_token=manual_token, verbose=verbose)
+            self._web_based(token=token, verbose=verbose)
         else:
             self.web_app_mode = False
             self._file_based(rt_file=rt_file, verbose=verbose)
-            
 
-    def _web_based(self, manual_token=None, verbose=''):
+
+    def _web_based(self, token='', verbose=''):
         """
         Description:
             Performs non file-based initialization proccedures.
         Parameters:
-            - manual_token pass the manually generated token, if it won't be taken from a local file.
-            Defaults to empty string.
+            - token pass the token obtained via Implicit Authorization, if it won't be taken from
+            a local file. Defaults to empty string.
             - verbose level of verbosity represented by the number of characters in a string.
             Defaults to empty string. Maximum verbosity is 1 or "v".
         """
-        if not manual_token:
+        if not token:
             raise Exception("Please log into your Questrade account (APP HUB), generate a new token for manual authorization, and try again.")
         else:
-            try: # see if manual_token is still a valid refresh token
-                self.get_new_refresh_token(token=manual_token.strip(), verbose=verbose)
+            token = token.strip()
+            try: # see if token is an access token
+                self.access_token = token
+                self.token_type = "Bearer"
                 self._get_accounts()
             except Exception as ex:
-                raise Exception("Please log into your Questrade account (APP HUB), generate a new token for manual authorization, and try again.")
+                try: # see if token is still a valid refresh token
+                    self.get_new_refresh_token(token=token, verbose=verbose)
+                    self._get_accounts()
+                except Exception as ex:
+                    raise Exception("Please log into your Questrade account (APP HUB), generate a new token for manual authorization, and try again.")
 
 
     def _file_based(self, rt_file="refreshToken", verbose=''):        
@@ -125,7 +133,7 @@ class Trader:
             try:
                 with open(rt_file, mode="rt", encoding="utf-8") as fp:
                     self.refresh_token = fp.read().strip()
-                    self.get_new_refresh_token(token=self.refresh_token)
+                    self.get_new_refresh_token(token=self.refresh_token, verbose=verbose)
                     self._get_accounts()
                     if verbose:
                         print("Got account(s)")
@@ -143,7 +151,8 @@ class Trader:
             during initialization.
             Trader will only call this method if the access token has expired.
         Parameters:
-            - token the refresh token that is stored in the local file pointed to by rt_file.
+            - token the refresh token (obtained from Implicit Authorization or taken from the local
+            file pointed to by rt_file).
             - verbose level of verbosity represented by the number of characters in a string.
             Defaults to empty string. Maximum verbosity is 1 or "v".
         """
@@ -163,26 +172,26 @@ class Trader:
         self.api_server = rd["api_server"][:-1]
         self.refresh_token = rd["refresh_token"]
         self.expires_in = rd["expires_in"]
-        if verbose:
-            print("Successfully exchanged refresh token for a new one, and a new {} minutes access token.".format(self.expires_in // 60))
 
         if not self.web_app_mode:
+            if verbose:
+                print("Successfully exchanged refresh token for a new one, and a new {} minutes access token.".format(self.expires_in // 60))
             try:
                 with open(self.rt_file, mode="wt", encoding="utf-8") as fp:
                     fp.write(self.refresh_token)
             except Exception as ex:
                 print(f"Could not save new refresh token in file {self.rt_file}:")
                 print(ex)
-        try:
-            with open("accessToken.json", mode="w", encoding='utf-8') as jfp:
-                now = dt.now()
-                self.expiry_date = now + td(seconds=self.expires_in)
-                rd["expiry_date"] = str(self.expiry_date)[:-7]
-                json.dump(rd, jfp, ensure_ascii=False, indent=4)
-        except Exception as ex:
-            print("Could not save new access token in file accessToken.json:")
-            print(ex)
-            raise Exception("Problem with accessToken.json")
+            try:
+                with open("accessToken.json", mode="w", encoding='utf-8') as jfp:
+                    now = dt.now()
+                    self.expiry_date = now + td(seconds=self.expires_in)
+                    rd["expiry_date"] = str(self.expiry_date)[:-7]
+                    json.dump(rd, jfp, ensure_ascii=False, indent=4)
+            except Exception as ex:
+                print("Could not save new access token in file accessToken.json:")
+                print(ex)
+                raise Exception("Problem with accessToken.json")
 
 
     def _report_and_exit(self, *args):
@@ -220,10 +229,19 @@ class Trader:
         self.accounts = resp.json()["accounts"] # list of accounts
 
 
+    def get_access_token(self):
+        """
+        Description:
+            Returns the access token.
+        """
+        return self.access_token
+
+
     def get_refresh_token(self):
         """
         Description:
-            Returns the refresh token.
+            Returns the refresh token. Note: An empty string will be returned if the Trader object
+            was initialized with an access token.
         """
         return self.refresh_token
 
@@ -954,4 +972,5 @@ class Trader:
         if verbosity > 0:
             pp(resp.json())
         return resp.json()
+
 
