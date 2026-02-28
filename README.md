@@ -9,9 +9,9 @@ Also includes an executable module that determines the ACB
 saved logs, and prints the profit/loss amounts of sell transactions 
 up till, but not including, a given cut-off year.
 As a conveninence, you may use the readily available Web application 
-[kwessACB](https://soloist.ai/kaiyoux#codeembed-1) for secure and confidential 
-on-the-fly determination of the ACB-based profit/loss values of your 
-Questrade investments.
+[kwessACBweb](https://kaiyoux.github.io/kwess_acb/) for secure on-the-fly 
+determination of the ACB-based profit/loss values of your Questrade 
+investments.
 
 ### To install:
 **python -m pip install kwess**
