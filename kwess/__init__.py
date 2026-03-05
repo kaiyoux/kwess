@@ -161,10 +161,7 @@ class Trader:
             resp = requests.get(self.server_url[self.server_type], params=refresh_parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            print(resp.request.url)
-            print(f"{self.server_type} server returned {resp.status_code} on get_new_refresh_token() attempt.")
-            print(ex)
-            raise Exception()
+            self._report_and_exit(f"In get_new_refresh_token() attempt, {self.server_type} server returned", ex)
 
         rd = resp.json()
         self.access_token = rd["access_token"]
@@ -203,7 +200,7 @@ class Trader:
             - args tuple of printable objects.
         """
         if self.web_app_mode:
-            raise Exception("\n".join(list(args)))
+            raise Exception("\n".join([str(arg) for arg in args]))
         else:
             for m in args:
                 print(m)
@@ -223,8 +220,8 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, f"{self.server_type} server returned {resp.status_code} on get_new_refresh_token() attempt.", ex)
-
+            self._report_and_exit(f"In _get_accounts(), {self.server_type} server returned", ex)
+                
         self.userid = resp.json()["userId"]
         self.accounts = resp.json()["accounts"] # list of accounts
 
@@ -341,7 +338,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'activities']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account activities.", f"{self.server_type} server returned {resp.status_code} on get_account_activities().", ex)
+            self._report_and_exit(f"In get_account_activities(), {self.server_type} server returned", ex)
 
         if verbosity > 1:
             pp(resp.json())
@@ -492,7 +489,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'orders']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account orders.", f"{self.server_type} server returned {resp.status_code} on get_account_orders().", ex)
+            self._report_and_exit(f"In get_account_orders(), {self.server_type} server returned", ex)
 
         if verbosity > 1:
             pp(resp.json())
@@ -528,7 +525,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'orders']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account orders by ids.", f"{self.server_type} server returned {resp.status_code} on get_account_orders_by_ids().", ex)
+            self._report_and_exit(f"In get_account_orders_by_ids(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -573,7 +570,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'executions']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account executions.", f"{self.server_type} server returned {resp.status_code} on get_account_executions().", ex)
+            self._report_and_exit(f"In get_account_executions(), {self.server_type} server returned", ex)
 
         if verbosity > 1:
             pp(resp.json())
@@ -604,7 +601,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'balances']), headers={'Authorization': " ".join([self.token_type, self.access_token])})
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account balances.", f"{self.server_type} server returned {resp.status_code} on get_account_balances().", ex)
+            self._report_and_exit(f"In get_account_balances(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -635,7 +632,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, accountnumber, 'positions']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for account positions.", f"{self.server_type} server returned {resp.status_code} on get_account_positions().", ex)
+            self._report_and_exit(f"In get_account_positions(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -661,7 +658,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, "v1/time"]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for its time.", f"{self.server_type} server returned {resp.status_code} on get_server_time().", ex)
+            self._report_and_exit(f"In get_server_time(), {self.server_type} server returned", ex)
 
         rd = resp.json()
         if verbosity > 0:
@@ -702,7 +699,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, "candles", str(sid)]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market candles.", f"{self.server_type} server returned {resp.status_code} on get_market_candles().", ex)
+            self._report_and_exit(f"In get_market_candles(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -731,7 +728,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, "quotes/strategies"]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quote strategies.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes_strategies().", ex)
+            self._report_and_exit(f"In get_market_quotes_strategies(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -763,7 +760,7 @@ class Trader:
             resp = requests.post("/".join([self.api_server, cmd_class, "quotes/options"]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, json=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quote options.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes_options().", ex)
+            self._report_and_exit(f"In get_market_quotes_options(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -808,7 +805,7 @@ class Trader:
                 self._report_and_exit("Invalid parameter(s) for get_market_quotes.")
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for market quotes.", f"{self.server_type} server returned {resp.status_code} on get_market_quotes().", ex)
+            self._report_and_exit(f"In get_market_quotes(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -835,7 +832,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for markets.", f"{self.server_type} server returned {resp.status_code} on get_markets().", ex)
+            self._report_and_exit(f"In get_markets(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -863,7 +860,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, str(sid), "options"]), headers={'Authorization': " ".join([self.token_type, self.access_token])}, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbol options.", f"{self.server_type} server returned {resp.status_code} on get_symbol_options().", ex)
+            self._report_and_exit(f"In get_symbol_options(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -893,7 +890,7 @@ class Trader:
             resp = requests.get("/".join([self.api_server, cmd_class, 'search']), headers={'Authorization': " ".join([self.token_type, self.access_token])}, params=parameters, timeout=self.timeout)
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to search server for symbols.", f"{self.server_type} server returned {resp.status_code} on search_symbols().", ex)
+            self._report_and_exit(f"In search_symbols(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -934,7 +931,7 @@ class Trader:
                 self._report_and_exit("Invalid parameter(s) for get_symbols_by_ids.")
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbols by ids.", f"{self.server_type} server returned {resp.status_code} on get_symbols_by_ids().", ex)
+            self._report_and_exit(f"In get_symbols_by_ids(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
@@ -968,10 +965,8 @@ class Trader:
                 self._report_and_exit("Invalid parameter(s) for get_symbols_by_names.")
             resp.raise_for_status()
         except requests.exceptions.RequestException as ex:
-            self._report_and_exit(resp.request.url, resp.text, "Failed to query server for symbols by names.", f"{self.server_type} server returned {resp.status_code} on get_symbols_by_names().", ex)
+            self._report_and_exit(f"In get_symbols_by_names(), {self.server_type} server returned", ex)
 
         if verbosity > 0:
             pp(resp.json())
         return resp.json()
-
-
