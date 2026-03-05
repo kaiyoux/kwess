@@ -293,7 +293,8 @@ class Trader:
                 dlt = enddatetime - startdatetime
                 while dlt.days > 29:
                     js = f(self, startdatetime=startdatetime, enddatetime=idt, *args, **kwargs)
-                    yield js
+                    if any(js.values()):
+                        yield js
                     startdatetime = idt + td(days=1)
                     idt = startdatetime + thirdy_days
                     dlt = enddatetime - startdatetime
