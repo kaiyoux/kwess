@@ -4,14 +4,6 @@ Pretty versatile Questrade API wrapper.
 For details about the input parameters and output results, please visit
 the [Questrade API documentation](https://www.questrade.com/api/home).
 
-Also includes an executable module that determines the ACB 
-(Average/Adjusted Cost Base) of buy and sell activities from 
-saved logs, and prints the profit/loss amounts of sell transactions 
-up till, but not including, a given cut-off year.
-As a conveninence, you may use the readily available Web application 
-[kwessACBweb](https://kaiyoux.github.io/kwess_acb/) for secure on-the-fly 
-determination of the ACB-based profit/loss values of your Questrade 
-investments.
 
 ### To install:
 **python -m pip install kwess**
